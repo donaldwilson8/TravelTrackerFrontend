@@ -12,7 +12,7 @@ const TripList = ({ refreshKey, onTripDeleted }) => {
 
     const refreshTrips = async () => {
         try {
-            const trips = await getTrips(userId);
+            const trips = await getTrips();
             setTrips(trips);
         } catch (e) {
             setError(e.message);

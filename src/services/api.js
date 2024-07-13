@@ -55,8 +55,8 @@ export const getVisitedCountries = async () => {
     return response.data;
 }
 
-export const getTrips = async (userId) => {
-    const response =  await api.get(`/trips/?user_id=${userId}/`);
+export const getTrips = async () => {
+    const response =  await api.get(`/trips/my_trips/`);
     return response.data;
 }
 
