@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8000/api',
+    baseURL: 'http://3.133.91.13:8000/api',
     headers: {
         'Content-Type': 'application/json'
     }
@@ -26,8 +26,10 @@ api.interceptors.response.use(
     response => response,
     error => {
         if (error.response) {
+            console.error('API error response:', error.response.data); // Detailed error log
             const customError = new Error(error.response.data?.detail || error.response.statusText || 'An error occurred');
             customError.status = error.response.status;
+            customError.data = error.response.data;
             return Promise.reject(customError);
         } else if (error.request) {
             return Promise.reject(new Error('Network error. Please try again.'));
@@ -39,18 +41,13 @@ api.interceptors.response.use(
 
 export const login = async (username, password) => {
     const response =  await api.post('/token/', { username, password });
-    console.log('Login response:', response);
+    console.log('login response: ', response);
     return response.data;
 }
 
 export const signup = async (username, password) => {
     const response =  await api.post('/signup/', { username, password });
     return response.data;
-}
-
-export const getCountries = async () => {
-    const response =  await api.get('/countries/');
-    return response.data;   
 }
 
 export const getVisitedCountries = async () => {
@@ -64,12 +61,12 @@ export const getTrips = async (userId) => {
 }
 
 export const createTrip = async (trip) => {
-    console.log("Trying to create a trip with the following:", trip);
     const response =  await api.post(`/trips/`, trip);
     return response.data;
 }
 
 export const deleteTrip = async (tripId) => {
-    const response =  await api.delete(`/trips/${tripId}`);
+    const response =  await api.delete(`/trips/${tripId}/`);
+    console.log("tried to delete:", response);
     return response.data;
 }

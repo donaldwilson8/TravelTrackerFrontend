@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { login as loginApi } from "../services/api";
 import { useNavigate } from 'react-router-dom';
 import AuthContext from "../contexts/AuthContext";
@@ -14,22 +14,27 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import background from '../traveltracker.webp';
+import Alert from "@mui/material/Alert";
 
 const Login = () => {
-    const { user, login } = useContext(AuthContext);
+    const { login, isLoggedIn } = useContext(AuthContext);
     const navigate = useNavigate();
-    if (user) {
+    const [error, setError] = useState(null);
+
+    if (isLoggedIn()) {
         navigate('/home');
     }
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const data = new FormData(e.currentTarget);
+            console.log("Login response upcoming");
             const response = await loginApi(data.get('username'), data.get('password'));
             login(response.user_id, response.access); 
             navigate('/home');
         } catch (error) {
-            console.error('Login failed', error);
+            console.error("login response: ", error);
+            setError(error.message);
         }
     };
 
@@ -65,6 +70,7 @@ const Login = () => {
                         Sign in
                     </Typography>
                     <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
+                        {error && <Alert severity='error'>{error}</Alert>}
                         <TextField
                             margin="normal"
                             required
@@ -86,23 +92,20 @@ const Login = () => {
                             autoComplete="current-password"
                         />
                         <FormControlLabel
-                            control={<Checkbox value="remember" color="primary" />}
+                            control={<Checkbox value="remember" id='remember' color="primary" />}
                             label="Remember me"
+                            id='remember'
                         />
                         <Button
                             type="submit"
                             fullWidth
                             variant="contained"
+                            id='signin'
                             sx={{ mt: 3, mb: 2 }}
                         >
                             Sign In
                         </Button>
                         <Grid container>
-                            <Grid item xs>
-                                <Link href="/reset" variant="body2">
-                                    Forgot password?
-                                </Link>
-                            </Grid>
                             <Grid item>
                                 <Link href="/signup" variant="body2">
                                     {"Don't have an account? Sign Up"}

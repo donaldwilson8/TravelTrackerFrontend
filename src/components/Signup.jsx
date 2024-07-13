@@ -14,12 +14,15 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import background from '../traveltracker.webp';
+import Alert from "@mui/material/Alert";
 
 const Signup = () => {
-    const { user, login } = useContext(AuthContext);
+    const { login, isLoggedIn } = useContext(AuthContext);
     const navigate = useNavigate();
     const [passwordsMatch, setPasswordsMatch] = useState(true);
-    if (user) {
+    const [error, setError] = useState(null);
+
+    if (isLoggedIn()) {
         navigate('/home');
     }
 
@@ -36,7 +39,7 @@ const Signup = () => {
             login(response.user_id, response.access);
             navigate('/home');
         } catch (error) {
-            console.error('Signup failed', error);
+            setError(error.message);
         }
     };
 
@@ -56,9 +59,10 @@ const Signup = () => {
                     <LockOutlinedIcon />
                 </Avatar>
                 <Typography component='h1' variant='h5'>
-                    Create a TalkBox account
+                    Create a TravelTracker account
                 </Typography>
                 <Box component="form" noValidate onChange={validateFormData} onSubmit={handleSubmit} sx={{ mt: 1 }}>
+                    {error && <Alert severity='error'>{error}</Alert>}
                     <TextField
                         margin='normal'
                         fullWidth
@@ -102,7 +106,7 @@ const Signup = () => {
                         variant='contained'
                         sx={{ mt: 3, mb: 2 }}
                     >
-                        Start Chatting Now
+                        Start Tracking Now
                     </Button>
                     <Grid container>
                         <Grid item xs>

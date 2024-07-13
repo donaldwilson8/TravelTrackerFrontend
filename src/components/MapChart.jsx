@@ -1,30 +1,40 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
-import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { getVisitedCountries } from '../services/api';
 import AuthContext from '../contexts/AuthContext';
 import Box from '@mui/material/Box';
 import geoUrl from '../countries-110m.json';
+import Alert from "@mui/material/Alert";
 
-const MapChart = () => {
-  const [tooltipContent, setTooltipContent] = useState("");
+const MapChart = ({ refreshKey }) => {
+  const [currentCountry, setCurrentCountry] = useState("filler");
+  const [hovered, setHovered] = useState(false);
   const [visitedCountries, setVisitedCountries] = useState([]);
   const { userId } = useContext(AuthContext);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchVisitedCountries = async () => {
-      if (userId) {
-        const countries = await getVisitedCountries();
-        console.log("visited countries: ", countries);
-        setVisitedCountries(countries);
+      try {
+        if (userId) {
+          const countries = await getVisitedCountries();
+          setVisitedCountries(countries);
+        }
+      } catch (error) {
+        setError(error.message);
       }
     };
     fetchVisitedCountries();
-  }, [userId]);
+  }, [userId, refreshKey]);
 
   return (
-    <Box sx={{ mt: 4 }}>
-      <ComposableMap data-tip="">
+    <div className="m-4 box-border flex flex-col justify-center items-center h-full lg:h-[65vh]">
+      {error && <Alert severity='error'>{error}</Alert>}
+      <div className={`flex justify-center text-xl ${hovered ? 'visible' : 'invisible'}`}>{currentCountry}</div>
+      <ComposableMap data-tip="" projectionConfig={{
+          scale: 200
+        }}
+        style={{ backgroundColor: 'blue' }} >
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
             geographies.map(geo => {
@@ -34,21 +44,25 @@ const MapChart = () => {
                   key={geo.rsmKey}
                   geography={geo}
                   onMouseEnter={() => {
-                    const { NAME } = geo.properties;
-                    setTooltipContent(`${NAME}`);
+                    setCurrentCountry(geo.properties.name)
+                    setHovered(true);
                   }}
                   onMouseLeave={() => {
-                    setTooltipContent("");
+                    setHovered(false);
                   }}
                   style={{
                     default: {
                       fill: isVisited ? 'green' : 'lightgray',
-                      outline: "none"
+                      outline: 'none'
                     },
                     hover: {
                       fill: isVisited ? 'darkgreen' : 'darkgray',
                       outline: "none"
                     },
+                    pressed: {
+                      fill: isVisited ? 'darkgreen' : 'darkgray',
+                      outline: 'none'
+                    }
                   }}
                 />
               );
@@ -56,8 +70,7 @@ const MapChart = () => {
           }
         </Geographies>
       </ComposableMap>
-      <ReactTooltip>{tooltipContent}</ReactTooltip>
-    </Box>
+    </div>
   );
 };
 
