@@ -45,8 +45,14 @@ export const login = async (username, password) => {
     return response.data;
 }
 
-export const signup = async (username, password) => {
-    const response =  await api.post('/signup/', { username, password });
+export const signup = async (username, password, home_country) => {
+    console.log('the request has:', {username, password, home_country});
+    const response =  await api.post('/signup/', { username, password, home_country });
+    return response.data;
+}
+
+export const getUserProfile = async () => {
+    const response = await api.get('/user_profiles/me/');
     return response.data;
 }
 

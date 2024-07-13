@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
-import { getVisitedCountries } from '../services/api';
+import { getUserProfile, getVisitedCountries } from '../services/api';
 import AuthContext from '../contexts/AuthContext';
 import Box from '@mui/material/Box';
 import geoUrl from '../countries-110m.json';
@@ -9,22 +9,25 @@ import Alert from "@mui/material/Alert";
 const MapChart = ({ refreshKey }) => {
   const [currentCountry, setCurrentCountry] = useState("filler");
   const [hovered, setHovered] = useState(false);
+  const [homeCountry, setHomeCountry] = useState('');
   const [visitedCountries, setVisitedCountries] = useState([]);
   const { userId } = useContext(AuthContext);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchVisitedCountries = async () => {
+    const fetchUserInfo = async () => {
       try {
         if (userId) {
           const countries = await getVisitedCountries();
           setVisitedCountries(countries);
+          const { home_country } = await getUserProfile();
+          setHomeCountry(home_country);
         }
       } catch (error) {
         setError(error.message);
       }
     };
-    fetchVisitedCountries();
+    fetchUserInfo();
   }, [userId, refreshKey]);
 
   return (
@@ -39,6 +42,7 @@ const MapChart = ({ refreshKey }) => {
           {({ geographies }) =>
             geographies.map(geo => {
               const isVisited = visitedCountries.includes(geo.properties.name);
+              const isHomeCountry = geo.properties.name === homeCountry;
               return (
                 <Geography
                   key={geo.rsmKey}
@@ -52,15 +56,15 @@ const MapChart = ({ refreshKey }) => {
                   }}
                   style={{
                     default: {
-                      fill: isVisited ? 'green' : 'lightgray',
+                      fill: isHomeCountry ? '#daa520' : isVisited ? 'green' : 'lightgray',
                       outline: 'none'
                     },
                     hover: {
-                      fill: isVisited ? 'darkgreen' : 'darkgray',
+                      fill: isHomeCountry ? '#b8860b' : isVisited ? 'darkgreen' : 'darkgray',
                       outline: "none"
                     },
                     pressed: {
-                      fill: isVisited ? 'darkgreen' : 'darkgray',
+                      fill: isHomeCountry ? '#b8860b' : isVisited ? 'darkgreen' : 'darkgray',
                       outline: 'none'
                     }
                   }}

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { signup } from "../services/api";
 import { useNavigate } from 'react-router-dom';
 import AuthContext from "../contexts/AuthContext";
@@ -15,10 +15,17 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import background from '../traveltracker.webp';
 import Alert from "@mui/material/Alert";
+import MenuItem from '@mui/material/MenuItem';
+import geoUrl from '../countries-110m.json';
+
+const extractCountryNames = (geoData) => {
+  return geoData.objects.countries.geometries.map(geo => geo.properties.name).sort();
+};
 
 const Signup = () => {
     const { login, isLoggedIn } = useContext(AuthContext);
     const navigate = useNavigate();
+    const [countryNames, setCountryNames] = useState([]);
     const [passwordsMatch, setPasswordsMatch] = useState(true);
     const [error, setError] = useState(null);
 
@@ -26,16 +33,25 @@ const Signup = () => {
         navigate('/home');
     }
 
+    useEffect(() => {
+        try {
+            setCountryNames(extractCountryNames(geoUrl));
+        } catch (error) {
+            setError(error);
+        }
+    })
+
     const validateFormData = (e) => {
         const data = new FormData(e.currentTarget);
         setPasswordsMatch(data.get('password') === data.get('confirm password'));
     }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const data = new FormData(e.currentTarget);
             // add in country to login
-            const response = await signup(data.get('username'), data.get('password'));
+            const response = await signup(data.get('username'), data.get('password'), data.get('country'));
             login(response.user_id, response.access);
             navigate('/home');
         } catch (error) {
@@ -72,7 +88,6 @@ const Signup = () => {
                         autoComplete='username'
                         autoFocus
                     />
-                    
                     <TextField
                         margin='normal'
                         required
@@ -95,7 +110,22 @@ const Signup = () => {
                         helperText={passwordsMatch ? '' : "Passwords do not match"}
                         error={!passwordsMatch}
                     />
-                    
+                    <TextField
+                        select
+                        margin='normal'
+                        required
+                        fullWidth
+                        id='country'
+                        name='country'
+                        label='Select Country'
+                        helperText='Please select the country you visited'
+                    >
+                        {countryNames.map((country, index) => (
+                            <MenuItem key={index} value={country}>
+                                {country}
+                            </MenuItem>
+                        ))}
+                    </TextField>
                     <FormControlLabel
                         control={<Checkbox value='remember' color='primary' />}
                         label='Remember me'
